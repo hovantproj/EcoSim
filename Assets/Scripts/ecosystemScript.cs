@@ -10,7 +10,7 @@ public class ecosystemScript : MonoBehaviour
     public GameObject WolfPrefab;
 
     [Header("Settings")] // Imma set how many items spawned here
-    public int GrassAmt = 50; // 50 grass
+    public int GrassAmt = 30; // 50 grass
     public int DeerAmt = 10; // 10 deer
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
