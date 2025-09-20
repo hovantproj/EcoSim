@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 189553796}
   - component: {fileID: 189553795}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: Island
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -318,7 +318,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 5, z: -5}
+  m_LocalPosition: {x: 0, y: 10, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -830,6 +830,7 @@ MonoBehaviour:
   GrassPrefab: {fileID: 1241933837}
   DeerPrefab: {fileID: 1747294433}
   WolfPrefab: {fileID: 778530995}
+  Island: {fileID: 189553794}
   GrassAmt: 50
   DeerAmt: 10
   WolfAmt: 3
@@ -950,6 +951,7 @@ GameObject:
   - component: {fileID: 1747294434}
   - component: {fileID: 1747294436}
   - component: {fileID: 1747294435}
+  - component: {fileID: 1747294437}
   m_Layer: 0
   m_Name: deer
   m_TagString: Untagged
@@ -1021,6 +1023,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.5, z: 0}
+--- !u!114 &1747294437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1747294433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2869645f0aaef4489d2dd12c2c3a2e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  moveSpeed: 5
+  hunger: 0
+  metabolism: 0
+  radius: 20
+  wanderTime: 4
 --- !u!1 &1905531127
 GameObject:
   m_ObjectHideFlags: 0

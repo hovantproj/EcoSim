@@ -1,5 +1,7 @@
 using UnityEngine;
 using Unity.Mathematics;
+using Unity.VisualScripting;
+using NUnit.Framework;
 
 public class ecosystemScript : MonoBehaviour
 {
@@ -8,19 +10,27 @@ public class ecosystemScript : MonoBehaviour
     public GameObject GrassPrefab;
     public GameObject DeerPrefab;
     public GameObject WolfPrefab;
+    public GameObject Island;
 
-    [Header("Settings")] // Imma set how many items spawned here
+    [Header("Spawn_Settings")] // Imma set how many items spawned here
     public int GrassAmt = 30; // 50 grass
     public int DeerAmt = 10; // 10 deer
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start() // Basically my main/entry point
+    
+    public void Spawn(GameObject Object, int Count)
     {
-        Spawn(GrassPrefab, GrassAmt);
-        Spawn(DeerPrefab, DeerAmt);
-        Spawn(WolfPrefab, WolfAmt);
+        for (int i = 0; i < Count; i++)
+        {
+            Vector3 SpawnPos = GetPosition();
+            GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity, Island.transform);
+
+            IIsland IslandInterface = NewObj.GetComponent<IIsland>();
+            if (IslandInterface != null)
+            {
+                IslandInterface.Init(Island);
+            }
+        }
     }
 
     Vector3 GetPosition()
@@ -36,12 +46,12 @@ public class ecosystemScript : MonoBehaviour
         return ChosenPos;
     }
 
-    public void Spawn(GameObject Object, int Count)
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start() // Basically my main/entry point
     {
-        for (int i = 0; i < Count; i++)
-        {
-            Vector3 SpawnPos = GetPosition();
-            GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity);
-        }
+        movementModule.Init(Island.transform.parent.gameObject);
+        Spawn(GrassPrefab, GrassAmt);
+        Spawn(DeerPrefab, DeerAmt);
+        Spawn(WolfPrefab, WolfAmt);
     }
 }
