@@ -11,6 +11,7 @@ public class ecosystemScript : MonoBehaviour
     public GameObject DeerPrefab;
     public GameObject WolfPrefab;
     public GameObject Island;
+    public GameObject IslandSpawns;
 
     [Header("Spawn_Settings")] // Imma set how many items spawned here
     public int GrassAmt = 30; // 50 grass
@@ -23,7 +24,7 @@ public class ecosystemScript : MonoBehaviour
         for (int i = 0; i < Count; i++)
         {
             Vector3 SpawnPos = GetPosition();
-            GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity, Island.transform);
+            GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity, IslandSpawns.transform);
 
             IIsland IslandInterface = NewObj.GetComponent<IIsland>();
             if (IslandInterface != null)
@@ -49,7 +50,7 @@ public class ecosystemScript : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start() // Basically my main/entry point
     {
-        movementModule.Init(Island.transform.parent.gameObject);
+        movementModule.Init(Island);
         Spawn(GrassPrefab, GrassAmt);
         Spawn(DeerPrefab, DeerAmt);
         Spawn(WolfPrefab, WolfAmt);

@@ -8,8 +8,6 @@ public static class movementModule
     public static void Init(GameObject Island)
     {
         IslandCollider = Island.GetComponent<Collider>();
-        if (IslandCollider == null)
-            Debug.LogError("Island error"); // Gives an error
     }
 
     public static void Move_To(Transform Object, Vector3 Target, float Speed)
@@ -35,12 +33,11 @@ public static class movementModule
         **/
         Vector2 RandCircle = Random.insideUnitCircle * Radius; // Random inside radius
         Vector3 RandomPos;
-
+        
         do
         {
             RandomPos = new Vector3(Origin.x + RandCircle.x, Origin.y, Origin.z + RandCircle.y);
         } while (!IslandCollider.bounds.Contains(RandomPos)); // Keeps going until valid
-
 
         return RandomPos;
     }
