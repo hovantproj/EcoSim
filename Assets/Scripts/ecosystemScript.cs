@@ -42,7 +42,6 @@ public class ecosystemScript : MonoBehaviour
         float RandomZ = UnityEngine.Random.Range(-SpawnArea.z / 2, SpawnArea.z / 2);
 
         Vector3 ChosenPos = new Vector3(RandomX, 0, RandomZ);
-        print(ChosenPos);
 
         return ChosenPos;
     }

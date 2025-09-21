@@ -1,59 +1,166 @@
-using System;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.AI;
+using UnityEngine.InputSystem.iOS;
 
-enum states
+public class deerScript : MonoBehaviour
 {
-    idle = 0,
-    fleeing,
-    hungry,
-    freaky
-}
+    public enum states
+    {
+        IDLE = 0,
+        SCARED,
+        HUNGRY,
+        FREAKY
+    }
 
-public class deerScript : MonoBehaviour, IIsland
-{
     [Header("Modifiables")]
-    public float MoveSpeed = 1f;
-    public float Hunger;
-    public float Metabolism;
+    public float MoveSpeed;
+    public float MaxHunger;
+    public float Health;
+    public float Radius = 5f;
+    public states CurrentState; // Sets to idle
 
-    // Movement stuff
-    public float Radius = 10f; // 20 units will be tge Radius
-    public float WanderTime = 4f; // How long before it starts exploreing again
+    private bool StandingStill = false;
+    private float StandingStillTimer = 0f;
+    private float StandingStillDuration = 2f; // seconds
     private Vector3 TargetPos;
-    private float Timer;
-    private GameObject Island;
+    public float Hunger;
 
-    public void Init(GameObject IslandReference)
+    public void Wander()
     {
-        Island = IslandReference;
+        if (!StandingStill)
+        {
+            // Only decide to stand still when reaching the target
+            if (Vector3.Distance(transform.position, TargetPos) <= 1f)
+            {
+                if (Random.value < 0.5f) // Chance to stand still
+                {
+                    TargetPos = transform.position;
+                    StandingStill = true;
+                    StandingStillTimer = 0f;
+                }
+                else
+                {
+                    TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
+                }
+            }
+        }
+        else
+        {
+            StandingStillTimer += Time.deltaTime;
+            if (StandingStillTimer >= StandingStillDuration)
+            {
+                TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
+                StandingStill = false;
+            }
+        }
     }
 
-    public Vector3 Get_Valid_Loc()
+    public void Find_Food()
     {
-        return TargetPos;
+        // Gets all the grass
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider nearestGrass = null;
+        float minDist = Mathf.Infinity; // Arbitrary big value
+
+        foreach (var hit in hitColliders)
+        {
+            if (hit.CompareTag("Grass"))
+            {
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestGrass = hit;
+                }
+            }
+            else
+            {
+                Wander();
+            }
+        }
+
+        if (nearestGrass != null)
+        {
+            TargetPos = nearestGrass.transform.position;
+            
+            if (Vector3.Distance(nearestGrass.transform.position, transform.position) <= 1f)
+            {
+                Destroy(nearestGrass.gameObject); // Eats the grass
+                Hunger = MaxHunger; // Full hunger maybe change later
+            }
+        }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public void Flee()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        foreach (var hit in hitColliders)
+        {
+            if (hit.CompareTag("Wolf"))
+            {
+                Vector3 DangerPos = hit.transform.position;
+                Vector3 FleeDir = (transform.position - DangerPos).normalized;
+                TargetPos = movementModule.Validate_Pos(transform.position + FleeDir * Radius, transform.position);
+            }
+        }
+    }
+
+    public states Get_State()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        foreach (var hit in hitColliders)
+        {
+            if (hit.CompareTag("Wolf"))
+            {
+                return states.SCARED;
+            }
+        }
+
+        if (Hunger <= 30)
+        {
+            return states.HUNGRY;
+        }
+
+        return states.IDLE;
+    }
+
     void Start()
     {
-        TargetPos = movementModule.Get_Random_Pos(transform.position, Radius); // Gets where it wants to move
+        MoveSpeed = Random.Range(0.5f, 2f);
+        MaxHunger = Random.Range(50f, 100f);
+        Hunger = MaxHunger;
+        TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        Timer += Time.deltaTime;    
+        movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
 
-        movementModule.Move_To(transform, TargetPos, MoveSpeed);
-
-        if (Vector3.Distance(TargetPos, transform.position) <= 1f || Timer > WanderTime)
+        // Hunger stuff
+        if (Hunger >= 0)
         {
-            TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
-            Timer = 0f;
+            Hunger -= Time.deltaTime; // hungry
+        }
 
-            movementModule.Move_To(transform, TargetPos, MoveSpeed);
+        CurrentState = Get_State(); // Updates state
+
+        switch (CurrentState) // Enums hooray
+        {
+            case states.IDLE:
+                Wander();
+                break;
+
+            case states.HUNGRY:
+                Find_Food();
+                break;
+
+            case states.SCARED:
+                Flee();
+                break;
+
+            case states.FREAKY:
+                // Implement freaky behavior
+                break;
         }
     }
 }
