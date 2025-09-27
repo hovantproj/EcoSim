@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.iOS;
+using UnityEngine.Timeline;
 
 public class deerScript : MonoBehaviour
 {
@@ -11,6 +13,8 @@ public class deerScript : MonoBehaviour
         HUNGRY,
         FREAKY
     }
+
+    public ecosystemScript ecosystem;
 
     [Header("Modifiables")]
     public float MoveSpeed;
@@ -101,6 +105,40 @@ public class deerScript : MonoBehaviour
                 Vector3 DangerPos = hit.transform.position;
                 Vector3 FleeDir = (transform.position - DangerPos).normalized;
                 TargetPos = movementModule.Validate_Pos(transform.position + FleeDir * Radius, transform.position);
+            }
+        }
+    }
+
+    public void Freak()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider nearestDeer = null;
+        float minDist = Mathf.Infinity; // Arbitrary big value
+
+        foreach (var hit in hitColliders)
+        {
+            if (hit.CompareTag("Deer"))
+            {
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestDeer = hit;
+                }
+            }
+            else
+            {
+                Wander();
+            }
+
+            if (nearestDeer != null)
+            {
+                TargetPos = nearestDeer.transform.position;
+
+                if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
+                {
+                    ecosystem.Spawn(ecosystem.DeerPrefab, 1, transform.position + new Vector3(1,0,1));
+                }
             }
         }
     }

@@ -18,12 +18,23 @@ public class ecosystemScript : MonoBehaviour
     public int DeerAmt = 10; // 10 deer
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
-    
-    public void Spawn(GameObject Object, int Count)
+
+    public void Spawn(GameObject Object, int Count, Vector3 Pos = default)
     {
+        Vector3 SpawnPos;
+
         for (int i = 0; i < Count; i++)
         {
-            Vector3 SpawnPos = GetPosition();
+            if (Pos == default)
+            {
+                SpawnPos = GetPosition();
+            }
+            
+            else
+            {
+                SpawnPos = Pos;
+            }
+
             GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity, IslandSpawns.transform);
 
             IIsland IslandInterface = NewObj.GetComponent<IIsland>();

@@ -1085,6 +1085,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2869645f0aaef4489d2dd12c2c3a2e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  ecosystem: {fileID: 1450712195}
   MoveSpeed: 1
   MaxHunger: 0
   Health: 0
