@@ -19,9 +19,28 @@ public class ecosystemScript : MonoBehaviour
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
 
-    public void Spawn(GameObject Object, int Count, Vector3 Pos = default)
+    public void Spawn(string Name, int Count, Vector3 Pos = default)
     {
+        GameObject Object;
         Vector3 SpawnPos;
+
+        if (Name == "Deer")
+        {
+            Object = DeerPrefab;
+        }
+        else if (Name == "Wolf")
+        {
+            Object = WolfPrefab;
+        }
+        else if (Name == "Grass")
+        {
+            Object = GrassPrefab;
+        }
+        else
+        {
+            Debug.LogError("Invalid object name for spawning: " + Name);
+            return;
+        }
 
         for (int i = 0; i < Count; i++)
         {
@@ -29,19 +48,19 @@ public class ecosystemScript : MonoBehaviour
             {
                 SpawnPos = GetPosition();
             }
-            
+
             else
             {
                 SpawnPos = Pos;
             }
 
-            GameObject NewObj = Instantiate(Object, SpawnPos, quaternion.identity, IslandSpawns.transform);
-
-            IIsland IslandInterface = NewObj.GetComponent<IIsland>();
-            if (IslandInterface != null)
+            if (Object == null)
             {
-                IslandInterface.Init(Island);
+                Debug.LogError("Prefab for " + Name + " is not assigned.");
+                return;
             }
+
+           Instantiate(Object, SpawnPos, Quaternion.identity, IslandSpawns.transform);
         }
     }
 
@@ -61,8 +80,8 @@ public class ecosystemScript : MonoBehaviour
     void Start() // Basically my main/entry point
     {
         movementModule.Init(Island);
-        Spawn(GrassPrefab, GrassAmt);
-        Spawn(DeerPrefab, DeerAmt);
-        Spawn(WolfPrefab, WolfAmt);
+        Spawn("Grass", GrassAmt);
+        Spawn("Deer", DeerAmt);
+        Spawn("Wolf", WolfAmt);
     }
 }

@@ -82,6 +82,7 @@ public class wolfScript : MonoBehaviour
             {
                 Destroy(nearestDeer.gameObject); // Eats the deer
                 Hunger = MaxHunger; // Full hunger maybe change later
+                return;
             }
         }
     }

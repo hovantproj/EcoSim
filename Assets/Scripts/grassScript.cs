@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class grassScript : MonoBehaviour, IIsland
+public class grassScript : MonoBehaviour
 {
     private GameObject Island;
 

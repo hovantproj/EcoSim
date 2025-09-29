@@ -6,15 +6,15 @@ public static class movementModule
     private static BoxCollider IslandCollider;
 
     public static void Init(GameObject Island)
-{
-    IslandCollider = Island.GetComponent<BoxCollider>();
-    if (IslandCollider == null)
     {
-        Debug.LogError("Island GameObject does not have a BoxCollider attached or it's disabled!");
-        return;
+        IslandCollider = Island.GetComponent<BoxCollider>();
+        
+        if (IslandCollider == null)
+            {
+                Debug.LogError("Island GameObject does not have a BoxCollider attached or it's disabled!");
+                return;
+            }
     }
-    Debug.Log(IslandCollider.bounds);
-}
 
     public static void Step_Toward(Transform Object, Vector3 Target, float Speed)
     {

@@ -14,7 +14,6 @@ public class deerScript : MonoBehaviour
         FREAKY
     }
 
-    public ecosystemScript ecosystem;
 
     [Header("Modifiables")]
     public float MoveSpeed;
@@ -25,8 +24,11 @@ public class deerScript : MonoBehaviour
 
     private bool StandingStill = false;
     private float StandingStillTimer = 0f;
-    private float StandingStillDuration = 2f; // seconds
+    private float StandingStillDuration = 2f; // In seconds
     private Vector3 TargetPos;
+    private float DeerTimer;
+    private float FreakTime;
+    private float DeerCooldown = 10f;
     public float Hunger;
 
     public void Wander()
@@ -86,11 +88,12 @@ public class deerScript : MonoBehaviour
         if (nearestGrass != null)
         {
             TargetPos = nearestGrass.transform.position;
-            
+
             if (Vector3.Distance(nearestGrass.transform.position, transform.position) <= 1f)
             {
                 Destroy(nearestGrass.gameObject); // Eats the grass
                 Hunger = MaxHunger; // Full hunger maybe change later
+                return;
             }
         }
     }
@@ -111,13 +114,14 @@ public class deerScript : MonoBehaviour
 
     public void Freak()
     {
+        FreakTime = DeerTimer; // Updates last freak time
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
         Collider nearestDeer = null;
-        float minDist = Mathf.Infinity; // Arbitrary big value
+        float minDist = Mathf.Infinity;
 
         foreach (var hit in hitColliders)
         {
-            if (hit.CompareTag("Deer"))
+            if (hit.CompareTag("Deer") && hit.gameObject != this.gameObject)
             {
                 float dist = Vector3.Distance(transform.position, hit.transform.position);
                 if (dist < minDist)
@@ -126,20 +130,22 @@ public class deerScript : MonoBehaviour
                     nearestDeer = hit;
                 }
             }
-            else
-            {
-                Wander();
-            }
+        }
 
-            if (nearestDeer != null)
-            {
-                TargetPos = nearestDeer.transform.position;
+        if (nearestDeer != null)
+        {
+            TargetPos = nearestDeer.transform.position;
 
-                if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
-                {
-                    ecosystem.Spawn(ecosystem.DeerPrefab, 1, transform.position + new Vector3(1,0,1));
-                }
+            if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
+            {
+                var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
+                Ecosystem.Spawn("Deer", 1, transform.position);
+                return;
             }
+        }
+        else
+        {
+            Wander();
         }
     }
 
@@ -159,11 +165,18 @@ public class deerScript : MonoBehaviour
             return states.HUNGRY;
         }
 
+        if (DeerTimer - FreakTime >= DeerCooldown) // Cooldown for freaking out
+            {
+                return states.FREAKY;
+            }
+
         return states.IDLE;
     }
 
     void Start()
     {
+        DeerTimer = 0;
+        FreakTime = 0;
         MoveSpeed = Random.Range(0.5f, 2f);
         MaxHunger = Random.Range(50f, 100f);
         Hunger = MaxHunger;
@@ -172,6 +185,7 @@ public class deerScript : MonoBehaviour
 
     void Update()
     {
+        DeerTimer += Time.deltaTime;
         movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
 
         // Hunger stuff
@@ -197,7 +211,7 @@ public class deerScript : MonoBehaviour
                 break;
 
             case states.FREAKY:
-                // Implement freaky behavior
+                Freak();
                 break;
         }
     }
