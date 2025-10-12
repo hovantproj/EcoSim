@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
 public class wolfScript : MonoBehaviour
@@ -80,16 +81,33 @@ public class wolfScript : MonoBehaviour
 
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
-                Destroy(nearestDeer.gameObject); // Eats the deer
-                Hunger = MaxHunger; // Full hunger maybe change later
-                return;
+                var deer = nearestDeer.GetComponent<IIsland>();
+                if (deer != null) // If the deer has the IIsland
+                {
+                    float initialHealth = nearestDeer.GetComponent<deerScript>().Health;
+                    deer.Damage(10f); // Deal 10 damage to the deer
+                    
+                    if (initialHealth <= 10f)
+                    {
+                        Debug.Log("Deer killed");
+                        float FoodValue = nearestDeer.GetComponent<deerScript>().Hunger + 10;
+                        
+                        if (Hunger + FoodValue > MaxHunger)
+                            Hunger = MaxHunger;
+                        else
+                            Hunger += FoodValue;
+                        
+                        Destroy(nearestDeer.gameObject); // Kill the deer
+                        return;
+                    }
+                }
             }
         }
     }
 
     public states Get_State()
     {
-        if (Hunger <= 30)
+        if (Hunger <= MaxHunger / 2)
         {
             return states.HUNGRY;
         }
@@ -99,23 +117,18 @@ public class wolfScript : MonoBehaviour
 
     void Start()
     {
-        MoveSpeed = Random.Range(0.1f, 1.5f);
-        MaxHunger = Random.Range(20f, 50f);
+        MoveSpeed = Random.Range(0.5f, 3f);
+        MaxHunger = Random.Range(30f, 70f);
         Hunger = MaxHunger;
         TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
     }
 
     void Update()
     {
-        movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
-
-        // Hunger stuff
-        if (Hunger >= 0)
-        {
-            Hunger -= Time.deltaTime * 2; // Hungry faster when hunting
-        }
-
         CurrentState = Get_State(); // Updates state
+
+        Hunger -= Time.deltaTime; 
+        movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
 
         switch (CurrentState) // Enums hooray
         {

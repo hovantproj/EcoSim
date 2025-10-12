@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.iOS;
 using UnityEngine.Timeline;
 
-public class deerScript : MonoBehaviour
+public class deerScript : MonoBehaviour, IIsland
 {
     public enum states
     {
@@ -26,10 +26,12 @@ public class deerScript : MonoBehaviour
     private float StandingStillTimer = 0f;
     private float StandingStillDuration = 2f; // In seconds
     private Vector3 TargetPos;
+    private float DeerCooldown; // Freak cooldown in seconds
+    public float Hunger;
+
+    // DO not change these these are timers
     private float DeerTimer;
     private float FreakTime;
-    private float DeerCooldown = 10f;
-    public float Hunger;
 
     public void Wander()
     {
@@ -139,7 +141,7 @@ public class deerScript : MonoBehaviour
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
-                Ecosystem.Spawn("Deer", 1, transform.position);
+                Ecosystem.Spawn("Deer", Random.Range(1, 4), transform.position);
                 return;
             }
         }
@@ -147,6 +149,11 @@ public class deerScript : MonoBehaviour
         {
             Wander();
         }
+    }
+
+    public void Damage(float dmg)
+    {
+        Health -= dmg;
     }
 
     public states Get_State()
@@ -177,8 +184,10 @@ public class deerScript : MonoBehaviour
     {
         DeerTimer = 0;
         FreakTime = 0;
+        Health = Random.Range(10f, 50f);
         MoveSpeed = Random.Range(0.5f, 2f);
         MaxHunger = Random.Range(50f, 100f);
+        DeerCooldown = Random.Range(20f, 40f); // Cooldown between 20 and 40 seconds
         Hunger = MaxHunger;
         TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
     }
