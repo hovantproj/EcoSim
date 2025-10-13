@@ -42,7 +42,7 @@ public static class movementModule
         if (IslandCollider.bounds.Contains(TriedPos))
             return TriedPos;
         else
-            return Get_Random_Pos(CurrentPos, IslandCollider.bounds.extents.x); // Just return the original position
+            return Get_Random_Pos(CurrentPos, IslandCollider.bounds.extents.x); // If not valid, just gets a random position within the island
     }
     
     public static Vector3 Get_Random_Pos(Vector3 Origin, float Radius) {

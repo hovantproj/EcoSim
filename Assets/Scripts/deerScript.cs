@@ -1,10 +1,6 @@
-using System.Diagnostics;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem.iOS;
-using UnityEngine.Timeline;
 
-public class deerScript : MonoBehaviour, IIsland
+public class deerScript : Animal, IIsland
 {
     public enum states
     {
@@ -14,26 +10,18 @@ public class deerScript : MonoBehaviour, IIsland
         FREAKY
     }
 
-
-    [Header("Modifiables")]
-    public float MoveSpeed;
-    public float MaxHunger;
-    public float Health;
-    public float Radius = 5f;
     public states CurrentState; // Sets to idle
-
+    private float Radius = 5f;
     private bool StandingStill = false;
     private float StandingStillTimer = 0f;
     private float StandingStillDuration = 2f; // In seconds
-    private Vector3 TargetPos;
+
+    // DO not change these these are timers (And freak stuff)
     private float DeerCooldown; // Freak cooldown in seconds
-    public float Hunger;
+    private float DeerTimer; // Just a running timer I will be using for freak logic
+    private float FreakTime; // Time of last freak
 
-    // DO not change these these are timers
-    private float DeerTimer;
-    private float FreakTime;
-
-    public void Wander()
+    public override void Wander()
     {
         if (!StandingStill)
         {
@@ -63,10 +51,10 @@ public class deerScript : MonoBehaviour, IIsland
         }
     }
 
-    public void Find_Food()
+    public override void Eat()
     {
         // Gets all the grass
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         Collider nearestGrass = null;
         float minDist = Mathf.Infinity; // Arbitrary big value
 
@@ -102,22 +90,21 @@ public class deerScript : MonoBehaviour, IIsland
 
     public void Flee()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         foreach (var hit in hitColliders)
         {
             if (hit.CompareTag("Wolf"))
             {
                 Vector3 DangerPos = hit.transform.position;
                 Vector3 FleeDir = (transform.position - DangerPos).normalized;
-                TargetPos = movementModule.Validate_Pos(transform.position + FleeDir * Radius, transform.position);
+                TargetPos = movementModule.Validate_Pos(transform.position + FleeDir * Eyesight, transform.position);
             }
         }
     }
 
-    public void Freak()
+    public override void Reproduce()
     {
-        FreakTime = DeerTimer; // Updates last freak time
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         Collider nearestDeer = null;
         float minDist = Mathf.Infinity;
 
@@ -141,7 +128,8 @@ public class deerScript : MonoBehaviour, IIsland
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
-                Ecosystem.Spawn("Deer", Random.Range(1, 4), transform.position);
+                Ecosystem.Spawn("Deer", Random.Range(1, 3), transform.position); // Up to 2 deer
+                FreakTime = DeerTimer; // Updates last freak time
                 return;
             }
         }
@@ -167,15 +155,15 @@ public class deerScript : MonoBehaviour, IIsland
             }
         }
 
-        if (Hunger <= 30)
+        if (Hunger <= MaxHunger / 2)
         {
             return states.HUNGRY;
         }
 
         if (DeerTimer - FreakTime >= DeerCooldown) // Cooldown for freaking out
-            {
-                return states.FREAKY;
-            }
+        {
+            return states.FREAKY;
+        }
 
         return states.IDLE;
     }
@@ -184,18 +172,21 @@ public class deerScript : MonoBehaviour, IIsland
     {
         DeerTimer = 0;
         FreakTime = 0;
+        DeerCooldown = Random.Range(20f, 40f); // Cooldown between 20 and 40 seconds
+
+        Eyesight = Random.Range(3f, 7f);
         Health = Random.Range(10f, 50f);
         MoveSpeed = Random.Range(0.5f, 2f);
         MaxHunger = Random.Range(50f, 100f);
-        DeerCooldown = Random.Range(20f, 40f); // Cooldown between 20 and 40 seconds
         Hunger = MaxHunger;
         TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
     }
 
     void Update()
     {
+        CurrentState = Get_State(); // Updates state
         DeerTimer += Time.deltaTime;
-        movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
+        Move(TargetPos); // Use the base class Move method
 
         // Hunger stuff
         if (Hunger >= 0)
@@ -203,7 +194,10 @@ public class deerScript : MonoBehaviour, IIsland
             Hunger -= Time.deltaTime; // hungry
         }
 
-        CurrentState = Get_State(); // Updates state
+        if (Hunger <= 0)
+        {
+            Die(); // Use the base class Die method
+        }
 
         switch (CurrentState) // Enums hooray
         {
@@ -212,7 +206,7 @@ public class deerScript : MonoBehaviour, IIsland
                 break;
 
             case states.HUNGRY:
-                Find_Food();
+                Eat(); // Use the overridden Eat method
                 break;
 
             case states.SCARED:
@@ -220,7 +214,7 @@ public class deerScript : MonoBehaviour, IIsland
                 break;
 
             case states.FREAKY:
-                Freak();
+                Reproduce(); // Use the overridden Reproduce method
                 break;
         }
     }

@@ -1,7 +1,6 @@
-using JetBrains.Annotations;
 using UnityEngine;
 
-public class wolfScript : MonoBehaviour
+public class wolfScript : Animal
 {
     public enum states
     {
@@ -10,26 +9,25 @@ public class wolfScript : MonoBehaviour
         FREAKY
     }
 
-    [Header("Modifiables")]
-    public float MoveSpeed;
-    public float MaxHunger;
-    public float Radius = 3f;
-    public states CurrentState; // Sets to idle
-
+    public states CurrentState;
+    private float Radius = 5f;
     private bool StandingStill = false;
     private float StandingStillTimer = 0f;
-    private float StandingStillDuration = 1f; // seconds
-    private Vector3 TargetPos;
-    public float Hunger;
+    private float StandingStillDuration = 1f;
 
-    public void Wander()
+
+    // DO not change these these are timers (And freak stuff)
+    private float WolfCooldown;
+    private float WolfTimer;
+    private float FreakTime;
+
+    public override void Wander()
     {
         if (!StandingStill)
         {
-            // Only decide to stand still when reaching the target
             if (Vector3.Distance(transform.position, TargetPos) <= 1f)
             {
-                if (Random.value < 0.5f) // Chance to stand still
+                if (Random.value < 0.3f) // Chance to stand still
                 {
                     TargetPos = transform.position;
                     StandingStill = true;
@@ -52,11 +50,11 @@ public class wolfScript : MonoBehaviour
         }
     }
 
-    public void Find_Food()
+    public override void Eat()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         Collider nearestDeer = null;
-        float minDist = Mathf.Infinity; // Arbitrary big value
+        float minDist = Mathf.Infinity;
 
         foreach (var hit in hitColliders)
         {
@@ -69,10 +67,6 @@ public class wolfScript : MonoBehaviour
                     nearestDeer = hit;
                 }
             }
-            else
-            {
-                Wander();
-            }
         }
 
         if (nearestDeer != null)
@@ -81,35 +75,68 @@ public class wolfScript : MonoBehaviour
 
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
-                var deer = nearestDeer.GetComponent<IIsland>();
-                if (deer != null) // If the deer has the IIsland
+                var deer = nearestDeer.GetComponent<deerScript>();
+                if (deer != null)
                 {
-                    float initialHealth = nearestDeer.GetComponent<deerScript>().Health;
-                    deer.Damage(10f); // Deal 10 damage to the deer
-                    
-                    if (initialHealth <= 10f)
+                    deer.Damage(10f);
+
+                    if (deer.Health <= 0)
                     {
                         Debug.Log("Deer killed");
-                        float FoodValue = nearestDeer.GetComponent<deerScript>().Hunger + 10;
-                        
-                        if (Hunger + FoodValue > MaxHunger)
-                            Hunger = MaxHunger;
-                        else
-                            Hunger += FoodValue;
-                        
-                        Destroy(nearestDeer.gameObject); // Kill the deer
-                        return;
+                        Hunger = Mathf.Min(Hunger + 20, MaxHunger);
+                        Destroy(nearestDeer.gameObject);
                     }
                 }
+            }
+        } else
+        {
+            Wander();
+        }
+    }
+
+    public override void Reproduce() // Tge freaky state
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
+        Collider nearestWolf = null;
+        float minDist = Mathf.Infinity;
+
+        foreach (var hit in hitColliders)
+        {
+            if (hit.CompareTag("Wolf") && hit.gameObject != this.gameObject)
+            {
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestWolf = hit;
+                }
+            }
+        }
+
+        if (nearestWolf != null)
+        {
+            TargetPos = nearestWolf.transform.position;
+
+            if (Vector3.Distance(nearestWolf.transform.position, transform.position) <= 1f)
+            {
+                var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
+                Ecosystem.Spawn("Wolf", 1, transform.position);
+                Debug.Log("Wolf reproduced.");
+                FreakTime = WolfTimer;
             }
         }
     }
 
-    public states Get_State()
+    private states Get_State()
     {
-        if (Hunger <= MaxHunger / 2)
+        if (Hunger <= 30)
         {
             return states.HUNGRY;
+        }
+
+        if (WolfTimer - FreakTime >= WolfCooldown)
+        {
+            return states.FREAKY;
         }
 
         return states.IDLE;
@@ -117,31 +144,41 @@ public class wolfScript : MonoBehaviour
 
     void Start()
     {
-        MoveSpeed = Random.Range(0.5f, 3f);
-        MaxHunger = Random.Range(30f, 70f);
-        Hunger = MaxHunger;
         TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
+        MoveSpeed = Random.Range(0.5f, 3f);
+        MaxHunger = Random.Range(35f, 50f);
+        Eyesight = Random.Range(3f, 7f);
+
+        WolfTimer = 0;
+        FreakTime = 0;
+        WolfCooldown = Random.Range(20f, 40f);
+        Hunger = MaxHunger;
     }
 
     void Update()
     {
-        CurrentState = Get_State(); // Updates state
+        CurrentState = Get_State();
+        WolfTimer += Time.deltaTime;
+        Hunger -= Time.deltaTime;
 
-        Hunger -= Time.deltaTime; 
-        movementModule.Step_Toward(transform, TargetPos, MoveSpeed); // Moves toward target
+        if (Hunger <= 0)
+        {
+            Die();
+            Debug.Log("Wolf died of hunger.");
+        }
 
-        switch (CurrentState) // Enums hooray
+        Move(TargetPos);
+
+        switch (CurrentState)
         {
             case states.IDLE:
                 Wander();
                 break;
-
             case states.HUNGRY:
-                Find_Food();
+                Eat();
                 break;
-
             case states.FREAKY:
-                // Implement freaky behavior
+                Reproduce();
                 break;
         }
     }

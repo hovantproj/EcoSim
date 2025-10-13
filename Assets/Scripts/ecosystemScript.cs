@@ -1,7 +1,9 @@
 using UnityEngine;
-using Unity.Mathematics;
 using Unity.VisualScripting;
 using NUnit.Framework;
+using Unity.VisualScripting.Antlr3.Runtime;
+using System.Runtime.InteropServices;
+
 
 public class ecosystemScript : MonoBehaviour
 {
@@ -60,10 +62,10 @@ public class ecosystemScript : MonoBehaviour
                 return;
             }
 
-           Instantiate(Object, SpawnPos, Quaternion.identity, IslandSpawns.transform);
+            Instantiate(Object, SpawnPos, Quaternion.identity, IslandSpawns.transform);
         }
     }
-
+    
     Vector3 GetPosition()
     {
         // Getting the random positions of the spawn in allowable area
@@ -83,5 +85,17 @@ public class ecosystemScript : MonoBehaviour
         Spawn("Grass", GrassAmt);
         Spawn("Deer", DeerAmt);
         Spawn("Wolf", WolfAmt);
+        StartCoroutine(SpawnGrass()); // Just keeps spawning grass
+    }
+
+    private System.Collections.IEnumerator SpawnGrass()
+    {
+        while (true)
+        {
+            float delay = Random.Range(1f, 5f);
+            yield return new WaitForSeconds(delay);
+
+            Spawn("Grass", 1);
+        }
     }
 }
