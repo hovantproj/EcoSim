@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class deerScript : Animal, IIsland
@@ -69,10 +70,6 @@ public class deerScript : Animal, IIsland
                     nearestGrass = hit;
                 }
             }
-            else
-            {
-                Wander();
-            }
         }
 
         if (nearestGrass != null)
@@ -85,6 +82,11 @@ public class deerScript : Animal, IIsland
                 Hunger = MaxHunger; // Full hunger maybe change later
                 return;
             }
+        }
+
+        else
+        {
+            Wander();
         }
     }
 
@@ -128,7 +130,11 @@ public class deerScript : Animal, IIsland
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
-                Ecosystem.Spawn("Deer", Random.Range(1, 3), transform.position); // Up to 2 deer
+                float[] inheritStats = new float[] { (this.MaxHunger + nearestDeer.GetComponent<deerScript>().MaxHunger + Random.Range(-5, 5)) / 2,
+                                                    (this.MoveSpeed + nearestDeer.GetComponent<deerScript>().MoveSpeed + Random.Range(-0.1f, 0.1f)) / 2,
+                                                    (this.Eyesight + nearestDeer.GetComponent<deerScript>().Eyesight + Random.Range(-0.5f, 0.5f)) / 2,
+                                                    (this.Health + nearestDeer.GetComponent<deerScript>().Health + Random.Range(-1, 1)) / 2 };
+                Ecosystem.Spawn("Deer", Random.Range(1, 3), transform.position, inheritStats); // Up to 2 deer
                 FreakTime = DeerTimer; // Updates last freak time
                 return;
             }
@@ -137,6 +143,15 @@ public class deerScript : Animal, IIsland
         {
             Wander();
         }
+    }
+
+    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight, float Health)
+    {
+        this.MaxHunger = MaxHunger;
+        this.MoveSpeed = MoveSpeed;
+        this.Eyesight = Eyesight;
+        this.Health = Health;
+        this.Hunger = MaxHunger; // Start with full hunger
     }
 
     public void Damage(float dmg)

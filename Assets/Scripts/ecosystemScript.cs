@@ -3,9 +3,10 @@ using Unity.VisualScripting;
 using NUnit.Framework;
 using Unity.VisualScripting.Antlr3.Runtime;
 using System.Runtime.InteropServices;
+using UnityEngine.InputSystem.XR;
 
 
-public class ecosystemScript : MonoBehaviour
+public class ecosystemScript : MonoBehaviour, IIsland
 {
     // Variables and allat
     [Header("Prefabs")] // My models/prefabs
@@ -21,7 +22,10 @@ public class ecosystemScript : MonoBehaviour
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
 
-    public void Spawn(string Name, int Count, Vector3 Pos = default)
+    public void Damage(float dmg) { } // Does nthing, just to satisfy the interface
+    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight, float Health) { } // Same here
+
+    public void Spawn(string Name, int Count, Vector3 Pos = default, float[] Inherit = default)
     {
         GameObject Object;
         Vector3 SpawnPos;
@@ -63,6 +67,22 @@ public class ecosystemScript : MonoBehaviour
             }
 
             Instantiate(Object, SpawnPos, Quaternion.identity, IslandSpawns.transform);
+
+            if (Inherit != null && Inherit.Length == 4)
+            {
+                float MaxHunger = Inherit[0];
+                float MoveSpeed = Inherit[1];
+                float Eyesight = Inherit[2];
+                float Health = Inherit[3];
+
+                var islandComponent = Island.GetComponent<IIsland>();
+                var animalComponent = Object.GetComponent<Animal>() as IIsland;
+
+                if (islandComponent != null && animalComponent != null)
+                {
+                    animalComponent.Setup(MaxHunger, MoveSpeed, Eyesight, Health);
+                }
+            }
         }
     }
     

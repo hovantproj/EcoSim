@@ -127,6 +127,15 @@ public class wolfScript : Animal
         }
     }
 
+    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight, float Health)
+    {
+        this.MaxHunger = MaxHunger;
+        this.MoveSpeed = MoveSpeed;
+        this.Eyesight = Eyesight;
+        this.Health = Health;
+        this.Hunger = MaxHunger; // Start with full hunger
+    }
+
     private states Get_State()
     {
         if (Hunger <= 30)
