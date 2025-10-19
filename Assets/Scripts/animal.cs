@@ -6,11 +6,10 @@ public abstract class Animal : MonoBehaviour
     public float MaxHunger;
     public float MoveSpeed;
     public float Eyesight;
-    public float Health;
 
     protected Vector3 TargetPos; // Only derived classes can access this
 
-    public virtual void Move(Vector3 targetPosition)
+    public virtual void Move(Vector3 targetPosition) // Virtual doesnt need docstrings iirc
     {
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, MoveSpeed * Time.deltaTime);
     }

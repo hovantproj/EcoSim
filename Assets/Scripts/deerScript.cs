@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-public class deerScript : Animal, IIsland
+public class deerScript : Animal, IIsland, IAnimal
 {
     public enum states
     {
@@ -11,11 +12,16 @@ public class deerScript : Animal, IIsland
         FREAKY
     }
 
+    float IAnimal.MaxHunger => MaxHunger; // The cool arrow thing means its read only
+    float IAnimal.MoveSpeed => MoveSpeed;
+    float IAnimal.Eyesight => Eyesight;
+
     public states CurrentState; // Sets to idle
     private float Radius = 5f;
     private bool StandingStill = false;
     private float StandingStillTimer = 0f;
     private float StandingStillDuration = 2f; // In seconds
+    private bool Inherit = false; // If true, the deer will inherit the stats of its parents
 
     // DO not change these these are timers (And freak stuff)
     private float DeerCooldown; // Freak cooldown in seconds
@@ -24,6 +30,14 @@ public class deerScript : Animal, IIsland
 
     public override void Wander()
     {
+        /**
+        Moves the deer over across to the goal position at their Speed, also has opportunity to stand still
+
+        @params: none
+
+        @returns: none (procedure)
+        **/
+
         if (!StandingStill)
         {
             // Only decide to stand still when reaching the target
@@ -54,6 +68,14 @@ public class deerScript : Animal, IIsland
 
     public override void Eat()
     {
+        /**
+        Makes deer approach the grass (goal pos) to eat it
+
+        @params: none
+
+        @returns: none (procedure)
+        **/
+
         // Gets all the grass
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         Collider nearestGrass = null;
@@ -92,20 +114,59 @@ public class deerScript : Animal, IIsland
 
     public void Flee()
     {
+        /**
+        Makes the deer run away from nearby wolves
+
+        @params: none
+
+        @returns: none (procedure)
+        **/
+
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         foreach (var hit in hitColliders)
         {
             if (hit.CompareTag("Wolf"))
             {
                 Vector3 DangerPos = hit.transform.position;
-                Vector3 FleeDir = (transform.position - DangerPos).normalized;
-                TargetPos = movementModule.Validate_Pos(transform.position + FleeDir * Eyesight, transform.position);
+                Vector3 FleeDir;
+
+                FleeDir = (transform.position - DangerPos).normalized; // Runs directly away
+
+                if (!movementModule.Validate_Pos(transform.position + FleeDir * Eyesight))
+                {
+                    Vector3 leftDir = Quaternion.Euler(0, -90, 0) * FleeDir; // Try side directions if it cant go directly away
+                    Vector3 rightDir = Quaternion.Euler(0, 90, 0) * FleeDir;
+
+                    if (movementModule.Validate_Pos(transform.position + leftDir * Eyesight))
+                    {
+                        TargetPos = transform.position + leftDir * Eyesight;
+                    }
+                    else if (movementModule.Validate_Pos(transform.position + rightDir * Eyesight))
+                    {
+                        TargetPos = transform.position + rightDir * Eyesight;
+                    }
+                }
+                else
+                {
+                    TargetPos = transform.position + FleeDir * Eyesight;
+                }
+
+                break;
             }
         }
     }
 
     public override void Reproduce()
     {
+
+        /**
+        Makes the deer look for another deer to reproduce with, and when it does it sends across the class stats to the ecosystem spawner for similar traits to parents
+
+        @params: none
+
+        @returns: none (procedure)
+        **/
+
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, Eyesight);
         Collider nearestDeer = null;
         float minDist = Mathf.Infinity;
@@ -129,14 +190,15 @@ public class deerScript : Animal, IIsland
 
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
+                // Momentarily stand still
+                TargetPos = transform.position;
+
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
                 float[] inheritStats = new float[] { (this.MaxHunger + nearestDeer.GetComponent<deerScript>().MaxHunger + Random.Range(-5, 5)) / 2,
                                                     (this.MoveSpeed + nearestDeer.GetComponent<deerScript>().MoveSpeed + Random.Range(-0.1f, 0.1f)) / 2,
-                                                    (this.Eyesight + nearestDeer.GetComponent<deerScript>().Eyesight + Random.Range(-0.5f, 0.5f)) / 2,
-                                                    (this.Health + nearestDeer.GetComponent<deerScript>().Health + Random.Range(-1, 1)) / 2 };
+                                                    (this.Eyesight + nearestDeer.GetComponent<deerScript>().Eyesight + Random.Range(-0.5f, 0.5f)) / 2};
                 Ecosystem.Spawn("Deer", Random.Range(1, 3), transform.position, inheritStats); // Up to 2 deer
                 FreakTime = DeerTimer; // Updates last freak time
-                return;
             }
         }
         else
@@ -145,22 +207,34 @@ public class deerScript : Animal, IIsland
         }
     }
 
-    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight, float Health)
+    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight) // From IIsland (If its an offspring)
     {
+        /**
+        Sets up the stats of the object (for offspring only)
+
+        @params: MaxHunger, MoveSpeed, Eyesight
+
+        @returns: none
+        **/
+
+        print("Deer inherited stats");
+        Inherit = true;
         this.MaxHunger = MaxHunger;
         this.MoveSpeed = MoveSpeed;
         this.Eyesight = Eyesight;
-        this.Health = Health;
-        this.Hunger = MaxHunger; // Start with full hunger
-    }
-
-    public void Damage(float dmg)
-    {
-        Health -= dmg;
+        Hunger = MaxHunger; // Start with full hunger
     }
 
     public states Get_State()
     {
+        /**
+        Gets the state that the object should be in
+
+        @params: none
+
+        @returns: state (the state the object should be in)
+        **/
+
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, Radius);
         foreach (var hit in hitColliders)
         {
@@ -189,16 +263,42 @@ public class deerScript : Animal, IIsland
         FreakTime = 0;
         DeerCooldown = Random.Range(20f, 40f); // Cooldown between 20 and 40 seconds
 
-        Eyesight = Random.Range(3f, 7f);
-        Health = Random.Range(10f, 50f);
-        MoveSpeed = Random.Range(0.5f, 2f);
-        MaxHunger = Random.Range(50f, 100f);
-        Hunger = MaxHunger;
         TargetPos = movementModule.Get_Random_Pos(transform.position, Radius);
+
+        if (!Inherit)
+        {
+            Eyesight = Random.Range(3f, 7f);
+            MoveSpeed = Random.Range(0.5f, 2f);
+            MaxHunger = Random.Range(50f, 100f);
+            Hunger = MaxHunger;
+        }
     }
 
     void Update()
     {
+        Vector3 crossProduct = Vector3.Cross(transform.forward, (TargetPos - transform.position).normalized);
+        if (crossProduct.y > 0.1f)
+        {
+            // Turn right
+            transform.Find("deerSprite").localScale = new Vector3(1, 1, 1); // Normal
+        }
+        else if (crossProduct.y < -0.1f)
+        {
+            // Turn left
+            transform.Find("deerSprite").localScale = new Vector3(-1, 1, 1); // Flipped
+        }
+
+        // check if deer is moving
+        if (Vector3.Distance(transform.position, TargetPos) > 0.1f)
+        {
+            float walkAngle = Mathf.Sin(Time.time * 10f * MoveSpeed) * 10f; // Sways between 5 and -5 degrees
+            transform.Find("deerSprite").rotation = Quaternion.Lerp(transform.Find("deerSprite").rotation, Quaternion.Euler(45, 0, walkAngle), Time.deltaTime * 5f);
+        }
+        else
+        {
+            transform.Find("deerSprite").rotation = Quaternion.Lerp(transform.Find("deerSprite").rotation, Quaternion.Euler(45, 0, 0), 2f); // Reset rotation when not moving
+        }
+
         CurrentState = Get_State(); // Updates state
         DeerTimer += Time.deltaTime;
         Move(TargetPos); // Use the base class Move method

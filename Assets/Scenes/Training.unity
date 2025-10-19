@@ -163,7 +163,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 81de96b1cba29434cba264e7ea0ef861, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -585,6 +585,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1450712196}
   - component: {fileID: 1450712195}
+  - component: {fileID: 1450712197}
   m_Layer: 0
   m_Name: EcosystemManager
   m_TagString: Untagged
@@ -628,6 +629,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1450712197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1450712194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fc0f43118c1c6343a82c71393e904de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::simManager
+  IslandSpawns: {fileID: 295276916}
+  SimulationObjects: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

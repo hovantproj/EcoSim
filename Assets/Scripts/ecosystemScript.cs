@@ -5,7 +5,6 @@ using Unity.VisualScripting.Antlr3.Runtime;
 using System.Runtime.InteropServices;
 using UnityEngine.InputSystem.XR;
 
-
 public class ecosystemScript : MonoBehaviour, IIsland
 {
     // Variables and allat
@@ -17,16 +16,24 @@ public class ecosystemScript : MonoBehaviour, IIsland
     public GameObject IslandSpawns;
 
     [Header("Spawn_Settings")] // Imma set how many items spawned here
-    public int GrassAmt = 30; // 50 grass
+    public int GrassAmt = 30; // 30 grass
     public int DeerAmt = 10; // 10 deer
     public int WolfAmt = 3; // 3 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
 
     public void Damage(float dmg) { } // Does nthing, just to satisfy the interface
-    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight, float Health) { } // Same here
+    public void Setup(float MaxHunger, float MoveSpeed, float Eyesight) { } // Same here
 
     public void Spawn(string Name, int Count, Vector3 Pos = default, float[] Inherit = default)
     {
+        /**
+        Spawns the object, using the name to determine what to spawn
+
+        @params: Name (what to spawn), Count (how many), Pos (where to spawn, default is random), Inherit (stats to inherit, default is none)
+
+        @returns: none
+        **/
+
         GameObject Object;
         Vector3 SpawnPos;
 
@@ -73,14 +80,13 @@ public class ecosystemScript : MonoBehaviour, IIsland
                 float MaxHunger = Inherit[0];
                 float MoveSpeed = Inherit[1];
                 float Eyesight = Inherit[2];
-                float Health = Inherit[3];
 
                 var islandComponent = Island.GetComponent<IIsland>();
                 var animalComponent = Object.GetComponent<Animal>() as IIsland;
 
                 if (islandComponent != null && animalComponent != null)
                 {
-                    animalComponent.Setup(MaxHunger, MoveSpeed, Eyesight, Health);
+                    animalComponent.Setup(MaxHunger, MoveSpeed, Eyesight);
                 }
             }
         }
@@ -88,6 +94,14 @@ public class ecosystemScript : MonoBehaviour, IIsland
     
     Vector3 GetPosition()
     {
+        /**
+        Gets a position within the spawn area
+
+        @params: none
+
+        @returns: chosenPos (the position to spawn at)
+        **/
+
         // Getting the random positions of the spawn in allowable area
         // Needs unityengine.random rather than just random because
         float RandomX = UnityEngine.Random.Range(-SpawnArea.x / 2, SpawnArea.x / 2);
@@ -110,6 +124,14 @@ public class ecosystemScript : MonoBehaviour, IIsland
 
     private System.Collections.IEnumerator SpawnGrass()
     {
+        /**
+        Keeps spawning grass at random interval bvetween 1 and 5 seconds
+
+        @params: none
+
+        @returns: none
+        **/
+
         while (true)
         {
             float delay = Random.Range(1f, 5f);
