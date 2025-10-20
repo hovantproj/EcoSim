@@ -18,7 +18,7 @@ public class ecosystemScript : MonoBehaviour, IIsland
     [Header("Spawn_Settings")] // Imma set how many items spawned here
     public int GrassAmt = 30; // 30 grass
     public int DeerAmt = 10; // 10 deer
-    public int WolfAmt = 3; // 3 wolves
+    public int WolfAmt = 5; // 5 wolves
     public Vector3 SpawnArea = new Vector3(3, 0, 3);
 
     public void Damage(float dmg) { } // Does nthing, just to satisfy the interface

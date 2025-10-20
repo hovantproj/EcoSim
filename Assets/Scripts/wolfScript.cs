@@ -118,13 +118,10 @@ public class wolfScript : Animal, IIsland, IAnimal
 
             if (Vector3.Distance(nearestWolf.transform.position, transform.position) <= 1f)
             {
-                // Momentarily stand still
-                TargetPos = transform.position;
-
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
-                float[] inheritStats = new float[] { (this.MaxHunger + nearestWolf.GetComponent<deerScript>().MaxHunger + Random.Range(-5, 5)) / 2,
-                                                    (this.MoveSpeed + nearestWolf.GetComponent<deerScript>().MoveSpeed + Random.Range(-0.1f, 0.1f)) / 2,
-                                                    (this.Eyesight + nearestWolf.GetComponent<deerScript>().Eyesight + Random.Range(-0.5f, 0.5f)) / 2};
+                float[] inheritStats = new float[] { (this.MaxHunger + nearestWolf.GetComponent<wolfScript>().MaxHunger + Random.Range(-5, 5)) / 2,
+                                                    (this.MoveSpeed + nearestWolf.GetComponent<wolfScript>().MoveSpeed + Random.Range(-0.1f, 0.1f)) / 2,
+                                                    (this.Eyesight + nearestWolf.GetComponent<wolfScript>().Eyesight + Random.Range(-0.5f, 0.5f)) / 2};
                 Ecosystem.Spawn("Wolf", 1, transform.position, inheritStats);
                 FreakTime = WolfTimer;
             }

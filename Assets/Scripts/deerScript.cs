@@ -190,9 +190,6 @@ public class deerScript : Animal, IIsland, IAnimal
 
             if (Vector3.Distance(nearestDeer.transform.position, transform.position) <= 1f)
             {
-                // Momentarily stand still
-                TargetPos = transform.position;
-
                 var Ecosystem = GameObject.Find("EcosystemManager").GetComponent<ecosystemScript>();
                 float[] inheritStats = new float[] { (this.MaxHunger + nearestDeer.GetComponent<deerScript>().MaxHunger + Random.Range(-5, 5)) / 2,
                                                     (this.MoveSpeed + nearestDeer.GetComponent<deerScript>().MoveSpeed + Random.Range(-0.1f, 0.1f)) / 2,
