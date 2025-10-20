@@ -23,7 +23,6 @@ public class ecosystemScript : MonoBehaviour, IIsland
 
     public void Damage(float dmg) { } // Does nthing, just to satisfy the interface
     public void Setup(float MaxHunger, float MoveSpeed, float Eyesight) { } // Same here
-
     public void Spawn(string Name, int Count, Vector3 Pos = default, float[] Inherit = default)
     {
         /**
